@@ -1,72 +1,107 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TEST</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Наклон текста</title>
     <style>
-       [data-tilt] {
-  display: inline-block;
-  transition: transform 0.05s linear;
-  transform-origin: center;
-  will-change: transform;
-  perspective: 1000px;
-}
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #222;
+            color: #f0f0f0;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
 
+        [data-tilt] {
+            display: inline-block;
+            transition: transform 0.1s ease;
+            transform-origin: center;
+            will-change: transform;
+            font-size: 2.2rem;
+            text-align: center;
+            text-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
+            max-width: 90%;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .fallback-message {
+            margin-top: 1rem;
+            font-size: 1rem;
+            color: #ccc;
+        }
     </style>
 </head>
 
 <body>
-    <h1 data-tilt>Наклоняемый текст</h1>
-    <p data-tilt>Проверь на телефоне и покрути немного</p>
-    
+
+    <h1 data-tilt>Наклоняй телефон – текст оживает ✨</h1>
+    <p class="fallback-message hidden">Похоже, ваш браузер не поддерживает доступ к датчикам движения.</p>
+
     <script>
-        function initTiltEffect() {
-          const tiltElements = document.querySelectorAll('[data-tilt]');
-      
-          function applyTilt(beta, gamma) {
-            // Увеличим чувствительность
-            const rotateX = Math.min(Math.max(beta, -45), 45) / 2;   // Вперёд-назад
-            const rotateY = Math.min(Math.max(gamma, -45), 45) / 2;  // Влево-вправо
-      
-            tiltElements.forEach(el => {
-              el.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-            });
-          }
-      
-          function handler(event) {
-            const { beta, gamma } = event;
-            console.log('Beta:', beta, 'Gamma:', gamma); // 🔍 Видим значения наклона
-            applyTilt(beta, gamma);
-          }
-      
-          // iOS — запрос разрешения
-          if (
-            typeof DeviceOrientationEvent !== 'undefined' &&
-            typeof DeviceOrientationEvent.requestPermission === 'function'
-          ) {
-            DeviceOrientationEvent.requestPermission()
-              .then(state => {
-                if (state === 'granted') {
-                  window.addEventListener('deviceorientation', handler);
-                } else {
-                  alert('Доступ к датчикам отклонён');
-                }
-              })
-              .catch(err => {
-                console.error('Ошибка разрешения:', err);
-              });
-          } else {
-            // Android и десктопы
+        function startTilt() {
+            const tiltElements = document.querySelectorAll('[data-tilt]');
+
+            function applyTilt(beta, gamma) {
+                const rotateX = Math.min(Math.max(beta, -45), 45) / 2;
+                const rotateY = Math.min(Math.max(gamma, -45), 45) / 2;
+
+                tiltElements.forEach(el => {
+                    el.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                });
+            }
+
+            function handler(event) {
+                const { beta, gamma } = event;
+                applyTilt(beta, gamma);
+            }
+
             window.addEventListener('deviceorientation', handler);
-          }
         }
-      
-        window.addEventListener('DOMContentLoaded', initTiltEffect);
-      </script>
-      
-      
+
+        function tryStartTiltAutomatically() {
+            const fallback = document.querySelector('.fallback-message');
+
+            if (
+                typeof DeviceOrientationEvent !== 'undefined' &&
+                typeof DeviceOrientationEvent.requestPermission === 'function'
+            ) {
+                // iOS 13+
+                DeviceOrientationEvent.requestPermission()
+                    .then(response => {
+                        if (response === 'granted') {
+                            startTilt();
+                        } else {
+                            fallback.classList.remove('hidden');
+                        }
+                    })
+                    .catch(err => {
+                        console.warn('Ошибка разрешения:', err);
+                        fallback.classList.remove('hidden');
+                    });
+            } else if (typeof DeviceOrientationEvent !== 'undefined') {
+                // Android или iOS до 13
+                startTilt();
+            } else {
+                fallback.classList.remove('hidden');
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            tryStartTiltAutomatically();
+        });
+    </script>
+
 </body>
 
 </html>
