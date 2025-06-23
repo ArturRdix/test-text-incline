@@ -6,27 +6,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TEST</title>
     <style>
-        [data-tilt] {
-            display: inline-block;
-            transition: transform 0.1s ease;
-            transform-origin: center;
-            will-change: transform;
-        }
+       [data-tilt] {
+  display: inline-block;
+  transition: transform 0.05s linear;
+  transform-origin: center;
+  will-change: transform;
+  perspective: 1000px;
+}
+
     </style>
 </head>
 
 <body>
-    <h1 data-tilt>Привет 👋</h1>
-    <p data-tilt>Этот текст будет наклоняться при движении телефона</p>
-    <div class="box" data-tilt>Можно применить и к блокам</div>
+    <h1 data-tilt>Наклоняемый текст</h1>
+    <p data-tilt>Проверь на телефоне и покрути немного</p>
+    
     <script>
         function initTiltEffect() {
           const tiltElements = document.querySelectorAll('[data-tilt]');
       
           function applyTilt(beta, gamma) {
-            // Ограничение углов
-            const rotateX = Math.min(Math.max(beta, -30), 30) / 5;   // Вперед-назад
-            const rotateY = Math.min(Math.max(gamma, -30), 30) / 5;  // Влево-вправо
+            // Увеличим чувствительность
+            const rotateX = Math.min(Math.max(beta, -45), 45) / 2;   // Вперёд-назад
+            const rotateY = Math.min(Math.max(gamma, -45), 45) / 2;  // Влево-вправо
       
             tiltElements.forEach(el => {
               el.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
@@ -35,30 +37,35 @@
       
           function handler(event) {
             const { beta, gamma } = event;
+            console.log('Beta:', beta, 'Gamma:', gamma); // 🔍 Видим значения наклона
             applyTilt(beta, gamma);
           }
       
-          // iOS требует разрешение
+          // iOS — запрос разрешения
           if (
             typeof DeviceOrientationEvent !== 'undefined' &&
             typeof DeviceOrientationEvent.requestPermission === 'function'
           ) {
             DeviceOrientationEvent.requestPermission()
-              .then(permissionState => {
-                if (permissionState === 'granted') {
+              .then(state => {
+                if (state === 'granted') {
                   window.addEventListener('deviceorientation', handler);
+                } else {
+                  alert('Доступ к датчикам отклонён');
                 }
               })
-              .catch(console.error);
+              .catch(err => {
+                console.error('Ошибка разрешения:', err);
+              });
           } else {
-            // Android и обычные браузеры
+            // Android и десктопы
             window.addEventListener('deviceorientation', handler);
           }
         }
       
-        // Инициализация после загрузки страницы
         window.addEventListener('DOMContentLoaded', initTiltEffect);
       </script>
+      
       
 </body>
 
