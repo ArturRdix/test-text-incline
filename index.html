@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEST</title>
+    <style>
+        [data-tilt] {
+            display: inline-block;
+            transition: transform 0.1s ease;
+            transform-origin: center;
+            will-change: transform;
+        }
+    </style>
+</head>
+
+<body>
+    <h1 data-tilt>Привет 👋</h1>
+    <p data-tilt>Этот текст будет наклоняться при движении телефона</p>
+    <div class="box" data-tilt>Можно применить и к блокам</div>
+    <script>
+        function initTiltEffect() {
+          const tiltElements = document.querySelectorAll('[data-tilt]');
+      
+          function applyTilt(beta, gamma) {
+            // Ограничение углов
+            const rotateX = Math.min(Math.max(beta, -30), 30) / 5;   // Вперед-назад
+            const rotateY = Math.min(Math.max(gamma, -30), 30) / 5;  // Влево-вправо
+      
+            tiltElements.forEach(el => {
+              el.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            });
+          }
+      
+          function handler(event) {
+            const { beta, gamma } = event;
+            applyTilt(beta, gamma);
+          }
+      
+          // iOS требует разрешение
+          if (
+            typeof DeviceOrientationEvent !== 'undefined' &&
+            typeof DeviceOrientationEvent.requestPermission === 'function'
+          ) {
+            DeviceOrientationEvent.requestPermission()
+              .then(permissionState => {
+                if (permissionState === 'granted') {
+                  window.addEventListener('deviceorientation', handler);
+                }
+              })
+              .catch(console.error);
+          } else {
+            // Android и обычные браузеры
+            window.addEventListener('deviceorientation', handler);
+          }
+        }
+      
+        // Инициализация после загрузки страницы
+        window.addEventListener('DOMContentLoaded', initTiltEffect);
+      </script>
+      
+</body>
+
+</html>
